@@ -46,7 +46,7 @@ final class ProfileViewModel {
         // Simplified: count unique exercises with completed sets
         let descriptor = FetchDescriptor<Workout>()
         let workouts = (try? modelContext.fetch(descriptor)) ?? []
-        let exerciseIds = Set(workouts.flatMap { w in
+        let exerciseIds = Swift.Set(workouts.flatMap { w in
             w.exercises.compactMap { $0.exercise?.id }
         })
         return exerciseIds.count

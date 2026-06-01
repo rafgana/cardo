@@ -11,17 +11,19 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Perfil") {
-                    if let profile = vm.profile {
+                if let profile = vm.profile {
+                    let p = Bindable(profile)
+
+                    Section("Perfil") {
                         HStack {
                             Text("Edad")
                             Spacer()
-                            TextField("Edad", value: $profile.age, format: .number)
+                            TextField("Edad", value: p.age, format: .number)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                         }
 
-                        Picker("Genero", selection: $profile.gender) {
+                        Picker("Genero", selection: p.gender) {
                             ForEach(Gender.allCases.map(\.rawValue), id: \.self) { g in
                                 Text(g).tag(g)
                             }
@@ -30,7 +32,7 @@ struct ProfileView: View {
                         HStack {
                             Text("Peso (kg)")
                             Spacer()
-                            TextField("Peso", value: $profile.bodyweight, format: .number)
+                            TextField("Peso", value: p.bodyweight, format: .number)
                                 .keyboardType(.decimalPad)
                                 .multilineTextAlignment(.trailing)
                         }
@@ -38,30 +40,29 @@ struct ProfileView: View {
                         HStack {
                             Text("Descanso (seg)")
                             Spacer()
-                            TextField("Timer", value: $profile.restTimerDefault, format: .number)
+                            TextField("Timer", value: p.restTimerDefault, format: .number)
                                 .keyboardType(.numberPad)
                                 .multilineTextAlignment(.trailing)
                         }
                     }
-                }
 
-                Section("Estadisticas") {
-                    LabeledContent("Total Entrenos", value: "\(vm.totalWorkouts)")
-                    LabeledContent("Peso Total", value: "\(Int(vm.totalVolume))kg")
-                    LabeledContent("PRs Batidos", value: "\(vm.totalPRs)")
-                }
-
-                Section("Preferencias") {
-                    if let profile = vm.profile {
-                        Toggle("Usar kg", isOn: $profile.useKg)
+                    Section("Estadisticas") {
+                        LabeledContent("Total Entrenos", value: "\(vm.totalWorkouts)")
+                        LabeledContent("Peso Total", value: "\(Int(vm.totalVolume))kg")
+                        LabeledContent("PRs Batidos", value: "\(vm.totalPRs)")
                     }
+
+                    Section("Preferencias") {
+                        Toggle("Usar kg", isOn: p.useKg)
+                    }
+                }
+
+                Section {
                     @AppStorage("useDarkMode") var useDarkMode = false
                     Toggle("Modo Oscuro", isOn: $useDarkMode)
                 }
             }
             .navigationTitle("Perfil")
-            .onChange(of: vm.profile?.age ?? 0) { _, _ in vm.saveProfile() }
-            .onChange(of: vm.profile?.bodyweight ?? 0) { _, _ in vm.saveProfile() }
         }
     }
 }

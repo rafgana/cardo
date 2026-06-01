@@ -18,7 +18,7 @@ final class ProgressionService {
         let completed = lastSets.filter { $0.isCompleted }
         guard let last = completed.last else { return nil }
 
-        let avgRIR = completed.compactMap { $0.rir }.average
+        let avgRIR = completed.compactMap { $0.rir }.map(Double.init).average
 
         if avgRIR >= 3 {
             return ProgressionSuggestion(
@@ -49,7 +49,7 @@ final class ProgressionService {
 
     func checkStall(for exercise: Exercise) -> Bool {
         let allSets = workoutService.lastSets(for: exercise, limit: 15)
-        let recentMax = allSets.prefix(9).compactMap { $0.rir }.average
+        let recentMax = allSets.prefix(9).compactMap { $0.rir }.map(Double.init).average
         return recentMax <= 0.5 && allSets.count >= 9
     }
 

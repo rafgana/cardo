@@ -29,17 +29,24 @@ jobs:
             -sdk iphonesimulator \
             -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO \
-            > build.log 2>&1
-          echo "=== BUILD LOG (last 30 lines) ==="
-          tail -30 build.log
-          echo "=== END ==="
+            > build.log 2>&1 || true
 
-      - name: Upload log
+      - name: Show errors
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
+        run: |
+          echo "### Build Log Summary" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          grep -n "error:" build.log | head -30 >> $GITHUB_STEP_SUMMARY || echo "No errors found" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Last 10 lines:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          tail -10 build.log >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat build.log | head -20
+          echo "..."
+          tail -10 build.log
+          if grep -q "BUILD SUCCEEDED" build.log; then exit 0; else exit 1; fi
 
       - name: Package .ipa
         if: success()

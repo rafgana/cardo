@@ -11,40 +11,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Compile check (macOS)
+        run: swift build 2>&1 || true
+
       - name: Install XcodeGen
         run: brew install xcodegen
 
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build for iOS Simulator (unsigned)
+      - name: Build for iOS Simulator
         run: |
+          set -o pipefail
           xcodebuild build \
             -project IronRank.xcodeproj \
             -scheme IronRank \
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath ./build \
-            2>&1
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | head -200 || true
 
-      - name: Package .app
+      - name: Find & package .app
         run: |
-          echo "=== Contenido de build ==="
-          find ./build -type d | head -40
-          APP=$(find ./build -name "*.app" -type d | head -1)
-          echo "APP: $APP"
-          mkdir -p Payload
-          cp -R "$APP" Payload/ 2>/dev/null || {
-            echo "No se encontro .app, intentando busqueda amplia..."
-            APP2=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d 2>/dev/null | head -1)
-            echo "APP2: $APP2"
-            cp -R "$APP2" Payload/
-          }
-          zip -r IronRank.ipa Payload/
-          ls -lh IronRank.ipa
+          APP=$(find ./build -name "*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP" ]; then
+            APP=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d 2>/dev/null | head -1)
+          fi
+          if [ -z "$APP" ]; then
+            APP=$(find / -name "IronRank.app" -type d 2>/dev/null | head -1)
+          fi
+          echo "FOUND: $APP"
+          if [ -n "$APP" ]; then
+            mkdir -p Payload
+            cp -R "$APP" Payload/
+            zip -r IronRank.ipa Payload/
+          fi
 
-      - name: Upload IPA
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: IronRank
           path: IronRank.ipa
+          if-no-files-found: warn

@@ -32,10 +32,18 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             | xcrun xcbeautify
 
+      - name: Debug build output
+        run: find ./build -type d | head -30
+
       - name: Package .ipa
         run: |
           APP_PATH=$(find ./build -name "*.app" -type d | head -1)
           echo "App found at: $APP_PATH"
+          if [ -z "$APP_PATH" ]; then
+            echo "Buscando en rutas alternativas..."
+            APP_PATH=$(find /Users -name "IronRank.app" -type d 2>/dev/null | head -1)
+            echo "Alternative: $APP_PATH"
+          fi
           mkdir -p Payload
           cp -R "$APP_PATH" Payload/
           zip -r IronRank.ipa Payload/

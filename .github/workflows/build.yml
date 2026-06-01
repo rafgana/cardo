@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: brew install xcodegen && xcodegen generate
       - run: |
-          xcodebuild -project IronRank.xcodeproj -scheme IronRank -configuration Debug -sdk iphonesimulator -derivedDataPath ./build CODE_SIGNING_ALLOWED=NO 2>&1
+          xcodebuild -project IronRank.xcodeproj -scheme IronRank -configuration Debug -sdk iphoneos -derivedDataPath ./build CODE_SIGNING_ALLOWED=NO 2>&1
           exit_code=$?
           echo "XCODEBUILD_EXIT_CODE=$exit_code"
           exit $exit_code

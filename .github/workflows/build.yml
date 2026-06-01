@@ -29,19 +29,10 @@ jobs:
             -sdk iphonesimulator \
             -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO \
-            > build.log 2>&1 || true
-          echo "=== BUILD LOG START ==="
-          cat build.log
-          echo "=== BUILD LOG END ==="
-
-      - name: Check build result
-        run: |
-          if grep -qi "error:" build.log; then
-            echo "BUILD FALLÓ. Errores:"
-            grep -i "error:" build.log
-            exit 1
-          fi
-          echo "BUILD OK"
+            > build.log 2>&1
+          echo "=== BUILD LOG (last 30 lines) ==="
+          tail -30 build.log
+          echo "=== END ==="
 
       - name: Upload log
         if: always()

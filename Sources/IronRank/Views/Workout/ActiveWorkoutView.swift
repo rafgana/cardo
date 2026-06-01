@@ -52,7 +52,7 @@ struct ActiveWorkoutView: View {
         let total = vm.totalSetsCount
         let done = vm.completedSetsCount
         return VStack(spacing: 4) {
-            ProgressView(value: total > 0 ? Double(done) / Double(total) : 0)
+            SwiftUI.ProgressView(value: total > 0 ? Double(done) / Double(total) : 0)
                 .tint(.orange)
                 .animation(.spring(response: 0.3), value: done)
             Text("\(done)/\(total) series")
@@ -179,7 +179,7 @@ struct ExerciseSectionView: View {
             }
         }
         .padding()
-        .background(isCurrent ? Color.orange.opacity(0.08) : .ultraThinMaterial)
+        .background(isCurrent ? AnyShapeStyle(Color.orange.opacity(0.08)) : AnyShapeStyle(.ultraThinMaterial))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             isCurrent ? RoundedRectangle(cornerRadius: 12).stroke(Color.orange, lineWidth: 1) : nil

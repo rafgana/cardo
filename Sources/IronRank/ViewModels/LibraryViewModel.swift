@@ -40,7 +40,7 @@ final class LibraryViewModel {
     }
 
     var muscleGroups: [String] {
-        Array(Set(exercises.map(\.musclePrimary))).sorted()
+        Array(Swift.Set(exercises.map(\.musclePrimary))).sorted()
     }
 
     func createRoutine(name: String) {

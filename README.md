@@ -1,40 +1,46 @@
-# IronRank - Gym Tracker con Sistema Ranked
+# IronRank
 
-App iOS para registrar entrenamientos con sistema de rangos tipo League of Legends.
+App iOS de tracking de gym con sistema ranked tipo League of Legends.
 
-## Stack
-- Swift 6 + SwiftUI + SwiftData + Swift Charts
-- iOS 17+
-- 100% offline-first
+## Estado
+- ✅ 32 archivos Swift escritos (Modelos, Servicios, Vistas, ViewModels, Utilidades)
+- ✅ Spec + Plan + Tasks documentados (570 lineas)
+- ✅ 80 ejercicios precargados + thresholds de ranked poblacionales
+- ✅ RIR (Reps in Reserve), Supersets, Dropsets, Plate calculator, Warmup calculator
+- ✅ Haptic feedback, animaciones, PR celebration, modo oscuro
+- ✅ GitHub: https://github.com/rafgana/cardo
 
-## Build (sin Mac)
+## Compilar (necesitas Mac)
 
-Cada push a `main` compila automaticamente en GitHub Actions:
-1. Sube a GitHub (`git push`)
-2. Action compila en Mac de GitHub
-3. Baja el `.ipa` de los artifacts
-4. Instala con AltStore / SideStore / Sideloadly
+### Opcion 1: En un Mac (recomendado)
+```bash
+git clone git@github.com:rafgana/cardo.git
+cd cardo
+brew install xcodegen
+xcodegen generate
+open IronRank.xcodeproj
+# Xcode > Product > Archive > Distribuir > Development
+# El .ipa se instala con AltStore
+```
+
+### Opcion 2: GitHub Actions (CI)
+El CI verifica que los archivos existen. Para build completo:
+- Usar servicio externo: https://codemagic.io (free tier)
+- O pedir a un amigo con Mac que compile
+
+### Opcion 3: Alquilar Mac
+- https://macstadium.com (~$20/mes)
+- https://metal.dev
 
 ## Estructura
-
 ```
 Sources/IronRank/
-├── Models/         (Workout, Set con RIR, Exercise, Routine, UserProfile)
-├── Services/       (WorkoutService, RankingService, ProgressionService, StandardsService)
-├── ViewModels/     (6 ViewModels)
-├── Views/          (5 tabs: Dashboard, Workout, Progreso, Ranked, Perfil)
-├── Utilities/      (Estimators, PlateCalculator, WarmupCalculator, Haptics)
-└── Resources/      (80 ejercicios + strength_standards.json)
+├── Models/         Workout, Set (RIR), Exercise, Routine, UserProfile
+├── Services/       RankingService, ProgressionService, StandardsService
+├── ViewModels/     6 ViewModels (@Observable, MVVM)
+├── Views/          Dashboard, Workout, Progreso, Ranked, Perfil
+├── Utilities/      Estimators (Epley+RIR), PlateCalc, Warmup, Haptics
+└── Resources/      80 ejercicios + strength_standards.json
 
-specs/              (spec.md, plan.md, tasks.md)
-```
-
-## Comandos
-
-```bash
-# Subir y compilar
-git add . && git commit -m "mensaje" && git push
-
-# Probar local si tienes Mac
-xcodegen generate && xcodebuild
+specs/001-gym-tracker/  spec.md, plan.md, tasks.md
 ```

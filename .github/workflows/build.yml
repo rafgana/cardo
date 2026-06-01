@@ -1,4 +1,4 @@
-name: IronRank CI
+name: Build IronRank
 
 on:
   push:
@@ -6,15 +6,53 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Swift files exist
+
+      - name: Check files
         run: |
           echo "=== Swift files ==="
           find Sources -name "*.swift" | sort
-          echo "=== Total ==="
-          find Sources -name "*.swift" | wc -l
-          echo "=== JSON resources ==="
-          find Sources -name "*.json" | sort
+          echo "=== project.yml ==="
+          cat project.yml
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate 2>&1
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project IronRank.xcodeproj \
+            -scheme IronRank \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath ./build \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1
+
+      - name: Package
+        if: success()
+        run: |
+          APP=$(find ./build -name "*.app" -type d | head -1)
+          if [ -z "$APP" ]; then
+            APP=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d | head -1)
+          fi
+          if [ -z "$APP" ]; then
+            echo "=== Buscando en todo el sistema ==="
+            find /private/tmp -name "*.app" -type d 2>/dev/null | head -5
+            exit 1
+          fi
+          echo "App: $APP"
+          mkdir -p Payload && cp -R "$APP" Payload/ && zip -r IronRank.ipa Payload/
+          ls -lh IronRank.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: IronRank
+          path: IronRank.ipa

@@ -11,9 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -22,34 +19,29 @@ jobs:
 
       - name: Build app
         run: |
-          xcodebuild \
+          xcodebuild build \
             -project IronRank.xcodeproj \
             -scheme IronRank \
             -configuration Release \
-            -derivedDataPath ./build \
-            -destination 'generic/platform=iOS' \
+            -sdk iphoneos \
+            CONFIGURATION_BUILD_DIR=./output \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            | xcrun xcbeautify
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            2>&1 | xcrun xcbeautify --renderer github-actions || true
 
-      - name: Debug build output
-        run: find ./build -type d | head -30
-
-      - name: Package .ipa
+      - name: Package IPA
         run: |
-          APP_PATH=$(find ./build -name "*.app" -type d | head -1)
-          echo "App found at: $APP_PATH"
-          if [ -z "$APP_PATH" ]; then
-            echo "Buscando en rutas alternativas..."
-            APP_PATH=$(find /Users -name "IronRank.app" -type d 2>/dev/null | head -1)
-            echo "Alternative: $APP_PATH"
-          fi
+          echo "=== Buscando .app ==="
+          find ./output -name "*.app" -type d
+          APP=$(find ./output -name "*.app" -type d | head -1)
+          echo "App: $APP"
           mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
+          cp -R "$APP" Payload/
           zip -r IronRank.ipa Payload/
           ls -lh IronRank.ipa
 
-      - name: Upload .ipa
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: IronRank

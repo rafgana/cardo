@@ -1,0 +1,56 @@
+name: Build IronRank iOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build iOS app
+        run: |
+          xcodebuild build \
+            -scheme IronRank \
+            -project IronRank.xcodeproj \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO \
+            BUILD_DIR=./build | xcbeautify
+
+      - name: Upload .app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IronRank-iOS
+          path: build/Release-iphoneos/*.app
+          compression-level: 9
+
+      - name: Upload .ipa (sideload-ready)
+        run: |
+          cd build/Release-iphoneos
+          mkdir -p Payload
+          cp -r *.app Payload/
+          zip -r IronRank.ipa Payload/
+          rm -rf Payload
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IronRank-ipa
+          path: build/Release-iphoneos/IronRank.ipa
+          compression-level: 9

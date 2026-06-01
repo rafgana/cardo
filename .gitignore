@@ -1,0 +1,8 @@
+*.xcodeproj/
+*.xcworkspace/
+build/
+.DS_Store
+*.ipa
+*.app
+xcuserdata/
+Pods/

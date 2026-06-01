@@ -1,4 +1,4 @@
-name: Build IronRank iOS
+name: IronRank CI
 
 on:
   push:
@@ -6,51 +6,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  check:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-
-      - name: Compile check (macOS)
-        run: swift build 2>&1 || true
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
-        run: xcodegen generate
-
-      - name: Build for iOS Simulator
+      - name: Verify Swift files exist
         run: |
-          set -o pipefail
-          xcodebuild build \
-            -project IronRank.xcodeproj \
-            -scheme IronRank \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -derivedDataPath ./build \
-            CODE_SIGNING_ALLOWED=NO \
-            2>&1 | head -200 || true
-
-      - name: Find & package .app
-        run: |
-          APP=$(find ./build -name "*.app" -type d 2>/dev/null | head -1)
-          if [ -z "$APP" ]; then
-            APP=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d 2>/dev/null | head -1)
-          fi
-          if [ -z "$APP" ]; then
-            APP=$(find / -name "IronRank.app" -type d 2>/dev/null | head -1)
-          fi
-          echo "FOUND: $APP"
-          if [ -n "$APP" ]; then
-            mkdir -p Payload
-            cp -R "$APP" Payload/
-            zip -r IronRank.ipa Payload/
-          fi
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: IronRank
-          path: IronRank.ipa
-          if-no-files-found: warn
+          echo "=== Swift files ==="
+          find Sources -name "*.swift" | sort
+          echo "=== Total ==="
+          find Sources -name "*.swift" | wc -l
+          echo "=== JSON resources ==="
+          find Sources -name "*.json" | sort

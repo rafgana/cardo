@@ -84,11 +84,13 @@ final class WorkoutViewModel {
         isResting = true
         restTimer?.invalidate()
         restTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            if restTimeRemaining > 0 {
-                restTimeRemaining -= 1
-            } else {
-                stopRestTimer()
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if restTimeRemaining > 0 {
+                    restTimeRemaining -= 1
+                } else {
+                    stopRestTimer()
+                }
             }
         }
     }

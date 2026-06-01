@@ -7,23 +7,21 @@ options:
 
 settings:
   base:
-    SWIFT_VERSION: "6.0"
-    TARGETED_DEVICE_FAMILY: "1"
+    SWIFT_VERSION: "5.9"
 
 targets:
   IronRank:
     type: application
     platform: iOS
     sources:
-      - path: Sources/IronRank
-        type: group
+      - Sources/IronRank
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ironrank.app
         INFOPLIST_FILE: Sources/IronRank/Info.plist
         DEVELOPMENT_TEAM: ""
-        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGNING_ALLOWED: YES
         CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO
     resources:
       - Sources/IronRank/Resources

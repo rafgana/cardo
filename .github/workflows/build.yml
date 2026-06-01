@@ -11,13 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check files
-        run: |
-          echo "=== Swift files ==="
-          find Sources -name "*.swift" | sort
-          echo "=== project.yml ==="
-          cat project.yml
-
       - name: Install XcodeGen
         run: brew install xcodegen
 
@@ -26,6 +19,7 @@ jobs:
 
       - name: Build
         run: |
+          set -o pipefail
           xcodebuild build \
             -project IronRank.xcodeproj \
             -scheme IronRank \
@@ -33,7 +27,14 @@ jobs:
             -sdk iphonesimulator \
             -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1
+            2>&1 | tee build.log
+
+      - name: Upload log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
 
       - name: Package
         if: success()
@@ -41,11 +42,6 @@ jobs:
           APP=$(find ./build -name "*.app" -type d | head -1)
           if [ -z "$APP" ]; then
             APP=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d | head -1)
-          fi
-          if [ -z "$APP" ]; then
-            echo "=== Buscando en todo el sistema ==="
-            find /private/tmp -name "*.app" -type d 2>/dev/null | head -5
-            exit 1
           fi
           echo "App: $APP"
           mkdir -p Payload && cp -R "$APP" Payload/ && zip -r IronRank.ipa Payload/

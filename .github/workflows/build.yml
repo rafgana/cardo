@@ -11,11 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode
+      - name: Select Xcode 16
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-      - name: Show Xcode version
-        run: xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -23,34 +20,29 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build iOS app
+      - name: Build app
         run: |
-          xcodebuild build \
-            -scheme IronRank \
+          xcodebuild \
             -project IronRank.xcodeproj \
-            -destination 'generic/platform=iOS' \
+            -scheme IronRank \
             -configuration Release \
+            -derivedDataPath ./build \
+            -destination 'generic/platform=iOS' \
             CODE_SIGNING_ALLOWED=NO \
-            BUILD_DIR=./build | xcbeautify
+            CODE_SIGN_IDENTITY="" \
+            | xcrun xcbeautify
 
-      - name: Upload .app artifact
+      - name: Package .ipa
+        run: |
+          APP_PATH=$(find ./build -name "*.app" -type d | head -1)
+          echo "App found at: $APP_PATH"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r IronRank.ipa Payload/
+          ls -lh IronRank.ipa
+
+      - name: Upload .ipa
         uses: actions/upload-artifact@v4
         with:
-          name: IronRank-iOS
-          path: build/Release-iphoneos/*.app
-          compression-level: 9
-
-      - name: Upload .ipa (sideload-ready)
-        run: |
-          cd build/Release-iphoneos
-          mkdir -p Payload
-          cp -r *.app Payload/
-          zip -r IronRank.ipa Payload/
-          rm -rf Payload
-        continue-on-error: true
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: IronRank-ipa
-          path: build/Release-iphoneos/IronRank.ipa
-          compression-level: 9
+          name: IronRank
+          path: IronRank.ipa

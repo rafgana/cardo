@@ -36,7 +36,7 @@ struct IronRankApp: App {
         let descriptor = FetchDescriptor<Exercise>()
         guard (try? context.fetchCount(descriptor)) == 0 else { return }
 
-        guard let url = Bundle.module.url(forResource: "exercises", withExtension: "json"),
+        guard let url = Bundle.main.url(forResource: "exercises", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let exercises = try? JSONDecoder().decode([ExerciseSeed].self, from: data) else {
             return

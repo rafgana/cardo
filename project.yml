@@ -9,7 +9,6 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     TARGETED_DEVICE_FAMILY: "1"
-    INFOPLIST_FILE: IronRank/Info.plist
 
 targets:
   IronRank:
@@ -21,7 +20,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ironrank.app
-        INFOPLIST_FILE: IronRank/Info.plist
+        INFOPLIST_FILE: Sources/IronRank/Info.plist
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_STYLE: Manual
         CODE_SIGNING_REQUIRED: NO

@@ -9,7 +9,7 @@ final class StandardsService {
     }
 
     private func loadStandards() {
-        guard let url = Bundle.module.url(forResource: "strength_standards", withExtension: "json"),
+        guard let url = Bundle.main.url(forResource: "strength_standards", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let decoded = try? JSONDecoder().decode([String: ExerciseStandards].self, from: data) else {
             return

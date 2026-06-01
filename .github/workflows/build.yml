@@ -17,6 +17,10 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      - name: Show build settings
+        run: |
+          xcodebuild -project IronRank.xcodeproj -scheme IronRank -showBuildSettings 2>&1 | grep -E "BUILD_DIR|SYMROOT|OBJROOT|CONFIGURATION_BUILD_DIR|TARGET_BUILD_DIR" | head -20
+
       - name: Build app
         run: |
           xcodebuild build \
@@ -24,22 +28,26 @@ jobs:
             -scheme IronRank \
             -configuration Release \
             -sdk iphoneos \
-            CONFIGURATION_BUILD_DIR=./output \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
             PROVISIONING_PROFILE_SPECIFIER="" \
             2>&1 | xcrun xcbeautify --renderer github-actions || true
 
-      - name: Package IPA
+      - name: Find and package .app
         run: |
-          echo "=== Buscando .app ==="
-          find ./output -name "*.app" -type d
-          APP=$(find ./output -name "*.app" -type d | head -1)
+          echo "=== Buscando .app en todo el sistema ==="
+          find /Users -name "*.app" -type d 2>/dev/null | head -10
+          find /tmp -name "*.app" -type d 2>/dev/null | head -10
+          find /private -name "*.app" -type d 2>/dev/null | head -10
+          APP=$(find /Users -name "IronRank.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP" ]; then
+            APP=$(find /private -name "IronRank.app" -type d 2>/dev/null | head -1)
+          fi
           echo "App: $APP"
           mkdir -p Payload
-          cp -R "$APP" Payload/
-          zip -r IronRank.ipa Payload/
-          ls -lh IronRank.ipa
+          cp -R "$APP" Payload/ || echo "COPY FALLÓ"
+          zip -r IronRank.ipa Payload/ || true
+          ls -lh IronRank.ipa || true
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4

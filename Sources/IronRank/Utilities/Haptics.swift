@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 
 enum HapticFeedback {
     @MainActor static func light() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }

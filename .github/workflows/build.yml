@@ -14,12 +14,14 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate project
+      - name: Generate
         run: xcodegen generate 2>&1
+
+      - name: List schemes
+        run: xcodebuild -project IronRank.xcodeproj -list 2>&1
 
       - name: Build
         run: |
-          set -o pipefail
           xcodebuild build \
             -project IronRank.xcodeproj \
             -scheme IronRank \
@@ -27,24 +29,34 @@ jobs:
             -sdk iphonesimulator \
             -derivedDataPath ./build \
             CODE_SIGNING_ALLOWED=NO \
-            2>&1 | tee build.log
+            > build.log 2>&1 || true
+          echo "=== BUILD LOG START ==="
+          cat build.log
+          echo "=== BUILD LOG END ==="
+
+      - name: Check build result
+        run: |
+          if grep -qi "error:" build.log; then
+            echo "BUILD FALLÓ. Errores:"
+            grep -i "error:" build.log
+            exit 1
+          fi
+          echo "BUILD OK"
 
       - name: Upload log
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: build-log
           path: build.log
 
-      - name: Package
+      - name: Package .ipa
         if: success()
         run: |
           APP=$(find ./build -name "*.app" -type d | head -1)
-          if [ -z "$APP" ]; then
-            APP=$(find ~/Library/Developer/Xcode/DerivedData -name "IronRank.app" -type d | head -1)
-          fi
           echo "App: $APP"
-          mkdir -p Payload && cp -R "$APP" Payload/ && zip -r IronRank.ipa Payload/
+          mkdir -p Payload && cp -R "$APP" Payload/
+          zip -r IronRank.ipa Payload/
           ls -lh IronRank.ipa
 
       - uses: actions/upload-artifact@v4

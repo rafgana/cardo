@@ -10,53 +10,17 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate project
-        run: xcodegen generate
-
-      - name: Build
-        run: |
-          xcodebuild build \
-            -project IronRank.xcodeproj \
-            -scheme IronRank \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -derivedDataPath ./build \
-            CODE_SIGNING_ALLOWED=NO > build.log 2>&1 || true
-
-      - name: Log errors to summary
-        if: always()
-        run: |
-          {
-            echo "### Build Errors"
-            echo '```'
-            grep -n "error:" build.log | head -30
-            echo '```'
-            echo "### Last lines"
-            echo '```'
-            tail -15 build.log
-            echo '```'
-          } >> $GITHUB_STEP_SUMMARY
-          cat build.log | head -100
-
-      - name: Check result
-        run: |
-          if grep -q "BUILD SUCCEEDED" build.log; then exit 0; fi
-          echo "BUILD FAILED"
-          grep -c "error:" build.log
-          exit 1
-
-      - name: Package
-        if: success()
-        run: |
+      - run: brew install xcodegen && xcodegen generate
+      - run: |
+          xcodebuild -project IronRank.xcodeproj -scheme IronRank -configuration Debug -sdk iphonesimulator -derivedDataPath ./build CODE_SIGNING_ALLOWED=NO 2>&1
+          exit_code=$?
+          echo "XCODEBUILD_EXIT_CODE=$exit_code"
+          exit $exit_code
+      - run: |
           APP=$(find ./build -name "*.app" -type d | head -1)
-          mkdir -p Payload && cp -R "$APP" Payload/
-          zip -r IronRank.ipa Payload/
-          ls -lh IronRank.ipa
-
+          [ -z "$APP" ] && APP=$(find ~/Library/Developer/Xcode/DerivedData -name "*.app" -type d | head -1)
+          mkdir -p Payload && cp -R "$APP" Payload/ && zip -r IronRank.ipa Payload/
+        if: success()
       - uses: actions/upload-artifact@v4
         if: success()
         with:

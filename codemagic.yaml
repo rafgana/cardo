@@ -1,0 +1,21 @@
+workflows:
+  ios-app:
+    name: IronRank iOS
+    environment:
+      vars:
+        XCODE_WORKSPACE: ""
+        XCODE_SCHEME: IronRank
+      xcode: 16.0
+    scripts:
+      - brew install xcodegen
+      - xcodegen generate
+      - xcodebuild build \
+          -project IronRank.xcodeproj \
+          -scheme IronRank \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -derivedDataPath ./build \
+          CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/*.app

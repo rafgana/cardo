@@ -14,11 +14,8 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate
-        run: xcodegen generate 2>&1
-
-      - name: List schemes
-        run: xcodebuild -project IronRank.xcodeproj -list 2>&1
+      - name: Generate project
+        run: xcodegen generate
 
       - name: Build
         run: |
@@ -28,31 +25,12 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -derivedDataPath ./build \
-            CODE_SIGNING_ALLOWED=NO \
-            > build.log 2>&1 || true
+            CODE_SIGNING_ALLOWED=NO 2>&1
 
-      - name: Show errors
-        if: always()
-        run: |
-          echo "### Build Log Summary" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          grep -n "error:" build.log | head -30 >> $GITHUB_STEP_SUMMARY || echo "No errors found" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Last 10 lines:" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          tail -10 build.log >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat build.log | head -20
-          echo "..."
-          tail -10 build.log
-          if grep -q "BUILD SUCCEEDED" build.log; then exit 0; else exit 1; fi
-
-      - name: Package .ipa
+      - name: Package
         if: success()
         run: |
           APP=$(find ./build -name "*.app" -type d | head -1)
-          echo "App: $APP"
           mkdir -p Payload && cp -R "$APP" Payload/
           zip -r IronRank.ipa Payload/
           ls -lh IronRank.ipa
